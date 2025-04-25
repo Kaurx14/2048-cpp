@@ -1,0 +1,20 @@
+ 
+# C++ build artifacts
+*.o
+*.out
+*.exe
+*.a
+*.so
+*.d
+
+# Qt Creator
+*.pro.user
+*.autosave
+*.qmake.stash
+*.pro.user.*
+build-*
+*.app
+
+# IDEs
+.vscode/
+.idea/
