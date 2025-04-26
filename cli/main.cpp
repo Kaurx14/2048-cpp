@@ -227,15 +227,27 @@ void lisaNumber(int ruudustik[SUURUS][SUURUS]) {
     ruudustik[rida][veerg] = uusnr;
 }
 
-
-/**
- * Kontrollib kas mäng on läbi
- * @param ruudustik
- * @return true kui mäng on läbi
- */
 bool kasLabi(int ruudustik[SUURUS][SUURUS]) {
-    //TODO
-    return false;
+    for (int i = 0; i < SUURUS; ++i) {
+        for (int j = 0; j < SUURUS; ++j) {
+            if (ruudustik[i][j] != 0) {
+                if (j != SUURUS - 1) {
+                    if (ruudustik[i][j] == ruudustik[i][j+1]) {
+                        return false;
+                    }
+                }
+                if (i != SUURUS - 1) {
+                    if (ruudustik[i][j] == ruudustik[i+1][j]) {
+                        return false;
+                    }
+                }
+            }
+            else {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 int main() {
@@ -272,15 +284,13 @@ int main() {
                         break;
                 }
                 if (liigutas) {
-                    if (kasLabi(ruudustik)) {
-                        system("cls");
-                        kuvaRuudustik(ruudustik);
-                        cout << "Mäng läbi!\n";
-                        break;
-                    }
                     lisaNumber(ruudustik);
                     system("cls");
                     kuvaRuudustik(ruudustik);
+                    if (kasLabi(ruudustik)) {
+                        cout << "Mäng läbi!\n";
+                        break;
+                    }
                 }
             }
         }
