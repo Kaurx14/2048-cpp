@@ -43,9 +43,125 @@ void kuvaRuudustik(int ruudustik[SUURUS][SUURUS]) {
     }
 }
 
-void liigutaRuudustikku(int ruudustik[SUURUS][SUURUS], int suund) {
-    bool liigutas = false;
+void liigutaRuudustikku(int ruudustik[SUURUS][SUURUS], int suund, bool* liigutas) {
 
+    //Liiguta üles
+    if (suund == 0) {
+        for (int i = 0; i < SUURUS; ++i) {
+            for (int j = 0; j < SUURUS; ++j) {
+                if (ruudustik[i][j] != 0) {
+                    int vaadeldav = i;
+                    for (int uus = i-1; uus >= 0; uus--) {
+                        if (ruudustik[uus][j] == 0) {
+                            //tühi ruut
+                            ruudustik[uus][j] = ruudustik[vaadeldav][j];
+                            ruudustik[vaadeldav][j] = 0;
+                            vaadeldav -= 1;
+                            *liigutas = true;
+                        } else {
+                            //ei ole tühi ruut
+                            if (ruudustik[uus][j] == ruudustik[vaadeldav][j]) {
+                                //on sama number, liidame
+                                ruudustik[uus][j] *= 2;
+                                ruudustik[vaadeldav][j] = 0;
+                                *liigutas = true;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    //Liiguta alla
+    if (suund == 1) {
+        for (int i = SUURUS - 1; i >= 0; --i) {
+            for (int j = 0; j < SUURUS; ++j) {
+                if (ruudustik[i][j] != 0) {
+                    int vaadeldav = i;
+                    for (int uus = i+1; uus < SUURUS; uus++) {
+                        if (ruudustik[uus][j] == 0) {
+                            //tühi ruut
+                            ruudustik[uus][j] = ruudustik[vaadeldav][j];
+                            ruudustik[vaadeldav][j] = 0;
+                            vaadeldav += 1;
+                            *liigutas = true;
+                        } else {
+                            //ei ole tühi ruut
+                            if (ruudustik[uus][j] == ruudustik[vaadeldav][j]) {
+                                //on sama number, liidame
+                                ruudustik[uus][j] *= 2;
+                                ruudustik[vaadeldav][j] = 0;
+                                *liigutas = true;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    //Liiguta vasakule
+    if (suund == 2) {
+        for (int i = 0; i < SUURUS; ++i) {
+            for (int j = 0; j < SUURUS; ++j) {
+                if (ruudustik[i][j] != 0) {
+                    int vaadeldav = j;
+                    for (int uus = j-1; uus >= 0; uus--) {
+                        if (ruudustik[i][uus] == 0) {
+                            //tühi ruut
+                            ruudustik[i][uus] = ruudustik[i][vaadeldav];
+                            ruudustik[i][vaadeldav] = 0;
+                            vaadeldav -= 1;
+                            *liigutas = true;
+                        } else {
+                            //ei ole tühi ruut
+                            if (ruudustik[i][uus] == ruudustik[i][vaadeldav]) {
+                                //on sama number, liidame
+                                ruudustik[i][uus] *= 2;
+                                ruudustik[i][vaadeldav] = 0;
+                                *liigutas = true;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    //Liiguta paremale
+    if (suund == 3) {
+        for (int i = 0; i < SUURUS; ++i) {
+            for (int j = SUURUS - 1; j >= 0; --j) {
+                if (ruudustik[i][j] != 0) {
+                    int vaadeldav = j;
+                    for (int uus = j+1; uus < SUURUS; uus++) {
+                        if (ruudustik[i][uus] == 0) {
+                            //tühi ruut
+                            ruudustik[i][uus] = ruudustik[i][vaadeldav];
+                            ruudustik[i][vaadeldav] = 0;
+                            vaadeldav += 1;
+                            *liigutas = true;
+                        } else {
+                            //ei ole tühi ruut
+                            if (ruudustik[i][uus] == ruudustik[i][vaadeldav]) {
+                                //on sama number, liidame
+                                ruudustik[i][uus] *= 2;
+                                ruudustik[i][vaadeldav] = 0;
+                                *liigutas = true;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /*
     // Liiguta ruute üles
     if (suund == 0) {
         for (int j = 0; j < SUURUS; ++j) {
@@ -53,7 +169,7 @@ void liigutaRuudustikku(int ruudustik[SUURUS][SUURUS], int suund) {
                 if (ruudustik[i][j] == 0) {
                     ruudustik[i][j] = ruudustik[i + 1][j];
                     ruudustik[i + 1][j] = 0;
-                    liigutas = true;
+                    *liigutas = true;
                 }
             }
         }
@@ -66,7 +182,7 @@ void liigutaRuudustikku(int ruudustik[SUURUS][SUURUS], int suund) {
                 if (ruudustik[i][j] == 0) {
                     ruudustik[i][j] = ruudustik[i - 1][j];
                     ruudustik[i - 1][j] = 0;
-                    liigutas = true;
+                    *liigutas = true;
                 }
             }
         }
@@ -79,7 +195,7 @@ void liigutaRuudustikku(int ruudustik[SUURUS][SUURUS], int suund) {
                 if (ruudustik[i][j] == 0) {
                     ruudustik[i][j] = ruudustik[i][j + 1];
                     ruudustik[i][j + 1] = 0;
-                    liigutas = true;
+                    *liigutas = true;
                 }
             }   
         }
@@ -92,11 +208,34 @@ void liigutaRuudustikku(int ruudustik[SUURUS][SUURUS], int suund) {
                 if (ruudustik[i][j] == 0) {
                     ruudustik[i][j] = ruudustik[i][j - 1];
                     ruudustik[i][j - 1] = 0;
-                    liigutas = true;
+                    *liigutas = true;
                 }
             }
         }
     }
+    */
+}
+
+void lisaNumber(int ruudustik[SUURUS][SUURUS]) {
+    int rida, veerg = 0;
+    do {
+        rida = rand() % SUURUS;
+        veerg = rand() % SUURUS;
+    } while (ruudustik[rida][veerg] != 0);
+    //õiges mängus on võimalik et uus ruut on ka 4
+    int uusnr = rand() % 10 < 7 ? 2 : 4; //hetkel 70 : 30 võimalus 2 ja 4 nelja vahel
+    ruudustik[rida][veerg] = uusnr;
+}
+
+
+/**
+ * Kontrollib kas mäng on läbi
+ * @param ruudustik
+ * @return true kui mäng on läbi
+ */
+bool kasLabi(int ruudustik[SUURUS][SUURUS]) {
+    //TODO
+    return false;
 }
 
 int main() {
@@ -110,33 +249,47 @@ int main() {
     while (running) {
         if (_kbhit()) {
             char key = _getch();
+            //cout << static_cast<int>(key) << endl;
             if (key == 27) { // ESC key
                 running = false;
-            } else if (key == 0 || key == 224) { // Nooled on 0 või 224
+            } else //if (key == 0 || key == 224 || key == -32) { // Nooled on 0 või 224
+                //või minul -32. kuid seda if-i siin pole vist üldse vaja
+            {
+                bool liigutas = false;
                 key = _getch(); // Annab key väärtuse
                 switch (key) {
                     case 72: // Üles
-                        liigutaRuudustikku(ruudustik, 0);
-                        system("cls");
-                        kuvaRuudustik(ruudustik);
+                        liigutaRuudustikku(ruudustik, 0, &liigutas);
                         break;
                     case 80: // Alla
-                        liigutaRuudustikku(ruudustik, 1);
-                        system("cls");
-                        kuvaRuudustik(ruudustik);
+                        liigutaRuudustikku(ruudustik, 1, &liigutas);
                         break;
                     case 75: // Vasak
-                        liigutaRuudustikku(ruudustik, 2);
-                        system("cls");
-                        kuvaRuudustik(ruudustik);
+                        liigutaRuudustikku(ruudustik, 2, &liigutas);
                         break;
                     case 77: // Parem
-                        liigutaRuudustikku(ruudustik, 3);
-                        system("cls");
-                        kuvaRuudustik(ruudustik);
+                        liigutaRuudustikku(ruudustik, 3, &liigutas);
                         break;
                 }
+                if (liigutas) {
+                    if (kasLabi(ruudustik)) {
+                        system("cls");
+                        kuvaRuudustik(ruudustik);
+                        cout << "Mäng läbi!\n";
+                        break;
+                    }
+                    lisaNumber(ruudustik);
+                    system("cls");
+                    kuvaRuudustik(ruudustik);
+                }
             }
+        }
+    }
+    //et kohe kinni ei viska, kui mäng saab läbi
+    //kui mäng pani ESC kaudu kinni, siis läheb siit otse läbi
+    while (running) {
+        if (_kbhit()) {
+            break;
         }
     }
     return 0;
