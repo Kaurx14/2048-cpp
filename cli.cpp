@@ -1,3 +1,4 @@
+#include "cli.h"
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
@@ -5,8 +6,6 @@
 #include <Windows.h>
 #include <conio.h>
 using namespace std;
-
-const int SUURUS = 4;
 
 void looRuudustik(int ruudustik[SUURUS][SUURUS]) {
     // Loo tühi ruudustik
@@ -44,7 +43,6 @@ void kuvaRuudustik(int ruudustik[SUURUS][SUURUS]) {
 }
 
 void liigutaRuudustikku(int ruudustik[SUURUS][SUURUS], int suund, bool* liigutas) {
-
     //Liiguta üles
     if (suund == 0) {
         for (int i = 0; i < SUURUS; ++i) {
@@ -160,60 +158,6 @@ void liigutaRuudustikku(int ruudustik[SUURUS][SUURUS], int suund, bool* liigutas
             }
         }
     }
-
-    /*
-    // Liiguta ruute üles
-    if (suund == 0) {
-        for (int j = 0; j < SUURUS; ++j) {
-            for (int i = 0; i < SUURUS - 1; ++i) {
-                if (ruudustik[i][j] == 0) {
-                    ruudustik[i][j] = ruudustik[i + 1][j];
-                    ruudustik[i + 1][j] = 0;
-                    *liigutas = true;
-                }
-            }
-        }
-    }
-
-    // Liiguta ruute alla
-    if (suund == 1) {
-        for (int j = 0; j < SUURUS; ++j) {
-            for (int i = SUURUS - 1; i > 0; --i) {
-                if (ruudustik[i][j] == 0) {
-                    ruudustik[i][j] = ruudustik[i - 1][j];
-                    ruudustik[i - 1][j] = 0;
-                    *liigutas = true;
-                }
-            }
-        }
-    }
-
-    // Liiguta ruute vasakule
-    if (suund == 2) {
-        for (int i = 0; i < SUURUS; ++i) {
-            for (int j = 0; j < SUURUS - 1; ++j) {
-                if (ruudustik[i][j] == 0) {
-                    ruudustik[i][j] = ruudustik[i][j + 1];
-                    ruudustik[i][j + 1] = 0;
-                    *liigutas = true;
-                }
-            }   
-        }
-    }
-
-    // Liiguta ruute paremale
-    if (suund == 3) {
-        for (int i = 0; i < SUURUS; ++i) {  
-            for (int j = SUURUS - 1; j > 0; --j) {
-                if (ruudustik[i][j] == 0) {
-                    ruudustik[i][j] = ruudustik[i][j - 1];
-                    ruudustik[i][j - 1] = 0;
-                    *liigutas = true;
-                }
-            }
-        }
-    }
-    */
 }
 
 void lisaNumber(int ruudustik[SUURUS][SUURUS]) {
@@ -250,13 +194,14 @@ bool kasLabi(int ruudustik[SUURUS][SUURUS]) {
     return true;
 }
 
-int main() {
+void cliMang() {
     srand(static_cast<unsigned int>(time(0)));
 
     int ruudustik[SUURUS][SUURUS];
     looRuudustik(ruudustik);
+    system("cls");
     kuvaRuudustik(ruudustik);
-    
+
     bool running = true;
     while (running) {
         if (_kbhit()) {
@@ -264,8 +209,7 @@ int main() {
             //cout << static_cast<int>(key) << endl;
             if (key == 27) { // ESC key
                 running = false;
-            } else //if (key == 0 || key == 224 || key == -32) { // Nooled on 0 või 224
-                //või minul -32. kuid seda if-i siin pole vist üldse vaja
+            } else //if (key == 0 || key == 224) { // Nooled on 0 või 224
             {
                 bool liigutas = false;
                 key = _getch(); // Annab key väärtuse
@@ -302,5 +246,4 @@ int main() {
             break;
         }
     }
-    return 0;
 }

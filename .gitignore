@@ -21,3 +21,4 @@ build-*
 
 cmake-build-debug/
 .git
+2048-cpp_build/
