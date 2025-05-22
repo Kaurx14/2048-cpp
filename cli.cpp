@@ -5,34 +5,38 @@
 #include <iomanip>
 #include <Windows.h>
 #include <conio.h>
+#include <vector>
 using namespace std;
 
-void looRuudustik(int ruudustik[SUURUS][SUURUS]) {
+void looRuudustik(vector<vector<int>>& ruudustik, int suurus) {
     // Loo tühi ruudustik
-    for (int i = 0; i < SUURUS; i++) {
-        for (int j = 0; j < SUURUS; j++) {
-            ruudustik[i][j] = 0;
+    ruudustik.clear();
+    for (int i = 0; i < suurus; i++) {
+        vector<int> rida;
+        for (int j = 0; j < suurus; j++) {
+            rida.push_back(0);
         }
+        ruudustik.push_back(rida);
     }
 
     // Initsialiseeri 2 juhuslikku ruutu väärtusega "2"
-    int rida = rand() % SUURUS;
-    int veerg = rand() % SUURUS;
+    int rida = rand() % ruudustik.size();
+    int veerg = rand() % ruudustik.size();
     ruudustik[rida][veerg] = 2;
 
     // Initsialiseeri ka teine ruut, kontrollides, et see ruut on tühi
     do {
-        rida = rand() % SUURUS;
-        veerg = rand() % SUURUS;
+        rida = rand() % ruudustik.size();
+        veerg = rand() % ruudustik.size();
     } while (ruudustik[rida][veerg] != 0);
     ruudustik[rida][veerg] = 2;
 }
 
-void kuvaRuudustik(int ruudustik[SUURUS][SUURUS]) {
+void kuvaRuudustik(vector<vector<int>>& ruudustik) {
     cout << "+----+----+----+----+\n";
-    for (int i = 0; i < SUURUS; ++i) {
+    for (int i = 0; i < ruudustik.size(); ++i) {
         cout << "|";
-        for (int j = 0; j < SUURUS; ++j) {
+        for (int j = 0; j < ruudustik.size(); ++j) {
             if (ruudustik[i][j] == 0)
                 cout << "    |";
             else
@@ -42,11 +46,11 @@ void kuvaRuudustik(int ruudustik[SUURUS][SUURUS]) {
     }
 }
 
-void liigutaRuudustikku(int ruudustik[SUURUS][SUURUS], int suund, bool* liigutas) {
+void liigutaRuudustikku(vector<vector<int>>& ruudustik, int suund, bool* liigutas) {
     //Liiguta üles
     if (suund == 0) {
-        for (int i = 0; i < SUURUS; ++i) {
-            for (int j = 0; j < SUURUS; ++j) {
+        for (int i = 0; i < ruudustik.size(); ++i) {
+            for (int j = 0; j < ruudustik.size(); ++j) {
                 if (ruudustik[i][j] != 0) {
                     int vaadeldav = i;
                     for (int uus = i-1; uus >= 0; uus--) {
@@ -74,11 +78,11 @@ void liigutaRuudustikku(int ruudustik[SUURUS][SUURUS], int suund, bool* liigutas
 
     //Liiguta alla
     if (suund == 1) {
-        for (int i = SUURUS - 1; i >= 0; --i) {
-            for (int j = 0; j < SUURUS; ++j) {
+        for (int i = ruudustik.size() - 1; i >= 0; --i) {
+            for (int j = 0; j < ruudustik.size(); ++j) {
                 if (ruudustik[i][j] != 0) {
                     int vaadeldav = i;
-                    for (int uus = i+1; uus < SUURUS; uus++) {
+                    for (int uus = i+1; uus < ruudustik.size(); uus++) {
                         if (ruudustik[uus][j] == 0) {
                             //tühi ruut
                             ruudustik[uus][j] = ruudustik[vaadeldav][j];
@@ -103,8 +107,8 @@ void liigutaRuudustikku(int ruudustik[SUURUS][SUURUS], int suund, bool* liigutas
 
     //Liiguta vasakule
     if (suund == 2) {
-        for (int i = 0; i < SUURUS; ++i) {
-            for (int j = 0; j < SUURUS; ++j) {
+        for (int i = 0; i < ruudustik.size(); ++i) {
+            for (int j = 0; j < ruudustik.size(); ++j) {
                 if (ruudustik[i][j] != 0) {
                     int vaadeldav = j;
                     for (int uus = j-1; uus >= 0; uus--) {
@@ -132,11 +136,11 @@ void liigutaRuudustikku(int ruudustik[SUURUS][SUURUS], int suund, bool* liigutas
 
     //Liiguta paremale
     if (suund == 3) {
-        for (int i = 0; i < SUURUS; ++i) {
-            for (int j = SUURUS - 1; j >= 0; --j) {
+        for (int i = 0; i < ruudustik.size(); ++i) {
+            for (int j = ruudustik.size() - 1; j >= 0; --j) {
                 if (ruudustik[i][j] != 0) {
                     int vaadeldav = j;
-                    for (int uus = j+1; uus < SUURUS; uus++) {
+                    for (int uus = j+1; uus < ruudustik.size(); uus++) {
                         if (ruudustik[i][uus] == 0) {
                             //tühi ruut
                             ruudustik[i][uus] = ruudustik[i][vaadeldav];
@@ -160,27 +164,27 @@ void liigutaRuudustikku(int ruudustik[SUURUS][SUURUS], int suund, bool* liigutas
     }
 }
 
-void lisaNumber(int ruudustik[SUURUS][SUURUS]) {
+void lisaNumber(vector<vector<int>>& ruudustik) {
     int rida, veerg = 0;
     do {
-        rida = rand() % SUURUS;
-        veerg = rand() % SUURUS;
+        rida = rand() % ruudustik.size();
+        veerg = rand() % ruudustik.size();
     } while (ruudustik[rida][veerg] != 0);
     //õiges mängus on võimalik et uus ruut on ka 4
     int uusnr = rand() % 10 < 7 ? 2 : 4; //hetkel 70 : 30 võimalus 2 ja 4 nelja vahel
     ruudustik[rida][veerg] = uusnr;
 }
 
-bool kasLabi(int ruudustik[SUURUS][SUURUS]) {
-    for (int i = 0; i < SUURUS; ++i) {
-        for (int j = 0; j < SUURUS; ++j) {
+bool kasLabi(vector<vector<int>>& ruudustik) {
+    for (int i = 0; i < ruudustik.size(); ++i) {
+        for (int j = 0; j < ruudustik.size(); ++j) {
             if (ruudustik[i][j] != 0) {
-                if (j != SUURUS - 1) {
+                if (j != ruudustik.size() - 1) {
                     if (ruudustik[i][j] == ruudustik[i][j+1]) {
                         return false;
                     }
                 }
-                if (i != SUURUS - 1) {
+                if (i != ruudustik.size() - 1) {
                     if (ruudustik[i][j] == ruudustik[i+1][j]) {
                         return false;
                     }
@@ -197,8 +201,8 @@ bool kasLabi(int ruudustik[SUURUS][SUURUS]) {
 void cliMang() {
     srand(static_cast<unsigned int>(time(0)));
 
-    int ruudustik[SUURUS][SUURUS];
-    looRuudustik(ruudustik);
+    vector<vector<int>> ruudustik;
+    looRuudustik(ruudustik, 4);
     system("cls");
     kuvaRuudustik(ruudustik);
 

@@ -1,17 +1,18 @@
 #ifndef CLI_H
 #define CLI_H
+#include <vector>
 
-const int SUURUS = 4;
+//const int SUURUS = 4;
 
-void looRuudustik(int ruudustik[SUURUS][SUURUS]);
+void looRuudustik(std::vector<std::vector<int>>& ruudustik, int suurus);
 
-void kuvaRuudustik(int ruudustik[SUURUS][SUURUS]);
+void kuvaRuudustik(std::vector<std::vector<int>>& ruudustik);
 
-void liigutaRuudustikku(int ruudustik[SUURUS][SUURUS], int suund, bool* liigutas);
+void liigutaRuudustikku(std::vector<std::vector<int>>& ruudustik, int suund, bool* liigutas);
 
-void lisaNumber(int ruudustik[SUURUS][SUURUS]);
+void lisaNumber(std::vector<std::vector<int>>& ruudustik);
 
-bool kasLabi(int ruudustik[SUURUS][SUURUS]);
+bool kasLabi(std::vector<std::vector<int>>& ruudustik);
 
 void cliMang();
 

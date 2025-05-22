@@ -11,18 +11,18 @@ using namespace ftxui;
 
 //https://github.com/ArthurSonzogni/FTXUI?tab=readme-ov-file
 
-Element make_grid2(int ruudustik[SUURUS][SUURUS]) {
+Element make_grid2(vector<vector<int>>& ruudustik) {
     std::vector<Elements> rows;
-    for (int i = 0; i < SUURUS; ++i) {
+    for (int i = 0; i < ruudustik.size(); ++i) {
         std::vector<Element> cols;
-        for (int j = 0; j < SUURUS; ++j) {
+        for (int j = 0; j < ruudustik.size(); ++j) {
             string ruut;
             if (ruudustik[i][j] == 0) {
                 ruut = " ";
             } else {
                 ruut = to_string(ruudustik[i][j]);
             }
-            cols.push_back(text(ruut)  | center | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 5) | border);
+            cols.push_back(text(ruut)  | center | size(WIDTH, EQUAL, 7) | size(HEIGHT, EQUAL, 3) | border);
         }
         rows.push_back(cols);
     }
@@ -33,15 +33,16 @@ Element make_grid2(int ruudustik[SUURUS][SUURUS]) {
 
 int main() {
     auto screen = ScreenInteractive::TerminalOutput();
-    int ruudustik[SUURUS][SUURUS];
 
-    looRuudustik(ruudustik);
+    vector<vector<int>> ruudustik;
+    int suurus = 4;
 
     int gamestate = 0;
 
     bool liigutas = false;
     bool gameover = false;
 
+    //mänguväli
     auto gridRenderer = Renderer([&] {
         string gameoverText = "";
         if (gameover) {
@@ -50,6 +51,49 @@ int main() {
         return vbox(make_grid2(ruudustik), text(gameoverText));  //
     });
 
+    //seaded
+    //TODO implemeteeri veel seadeid, nt värviskeemi muutmine
+    string suurusString = "4";
+    auto suuruseMuutmine = Input(&suurusString, "");
+    suuruseMuutmine |= CatchEvent([&](Event event) {
+        return event.is_character() && !std::isdigit(event.character()[0]);
+    });
+    suuruseMuutmine |= CatchEvent([&](Event event) {
+        return event.is_character() && suurusString.size() > 0;
+    });
+    auto seadedKinnita = Button("Kinnita", [&] {
+        try {
+            int uusSuurus = stoi(suurusString);
+            if (uusSuurus < 2) {
+                uusSuurus = 2;
+            }
+            if (uusSuurus > 9) {
+                uusSuurus = 9;
+            }
+            suurusString = to_string(uusSuurus);
+            suurus = uusSuurus;
+        } catch (invalid_argument& e) {
+            suurusString = "4";
+            suurus = 4;
+        }
+    });
+    auto seadedTab = Container::Vertical({
+        suuruseMuutmine,
+        seadedKinnita,
+    });
+    auto seadedRenderer = Renderer(seadedTab, [&] {
+        return vbox({
+            hbox(text("Mängulaua suurus: "), suuruseMuutmine->Render()),
+            text("muud valikud TODO"),
+            seadedKinnita->Render(),
+            separator(),
+            text("debug asjad"),
+            text(suurusString),
+            text(to_string(suurus)),
+        });
+    });
+
+    //peamenüü
     vector<string> valikud = {"Mängi", "Seaded", "Sulge"};
     int selected = 0;
     MenuOption option = MenuOption::Vertical();
@@ -57,33 +101,27 @@ int main() {
         if (selected == 2) {
             screen.Exit();
         }
-        if (selected == 1) {
+        if (selected == 0) {
             liigutas = false;
             gameover = false;
-            looRuudustik(ruudustik);
+            looRuudustik(ruudustik, suurus);
         }
         gamestate = selected+1;
     };
-    auto mainMenu = Menu(&valikud,
-    &selected, option);
+    auto mainMenu = Menu(&valikud, &selected, option);
 
-    //TODO
-    auto seaded = Container::Horizontal({
-        Renderer([&] {
-            return text("TODO");
-        })
-    });
-
-    int state = 0;
+    //kõikide osade konteiner
+    //lisa siia uusi osasid
     auto tab_container = Container::Tab(
         {
             mainMenu,
             gridRenderer,
-            seaded,
+            seadedRenderer,
         },
         &gamestate
     );
 
+    //põhi komponent
     auto main_component = Container::Vertical({tab_container});
     main_component |= CatchEvent([&](Event event) {
         bool handled = false;
@@ -123,18 +161,21 @@ int main() {
         return handled;
     });
 
+    //TODO parem välimus, kehtib ka eelmiste osade kohta
     auto main_renderer = Renderer(main_component, [&] {
         return vbox({
+            text("debug info"),
             hbox(text("selected = "), text(std::to_string(selected))),
             hbox(text("gamestate = "), text(std::to_string(gamestate))),
-            hbox(text("ESC viib tagasi main menusse")),
+            separator(),
+            hbox(text("ESC viib tagasi peamenüüsse")),
             separator(),
             main_component->Render() | frame,
         }) |
             border;
     });
 
-    cout << "\e[8;40;100t"; //Muudab algse terminai suurust
+    cout << "\e[8;40;100t"; //Muudab algse terminali suurust
 
     screen.Loop(main_renderer);
 
