@@ -194,9 +194,11 @@ int main() {
     };
 
     //mänguväli
-    auto gridRenderer = Renderer([&] {
+    auto manguRenderer = Renderer([&] {
+        vector<Element> vali = {make_grid2(ruudustik)};
+
         if (küsiSalvestamist) {
-            return vbox({
+            vali.push_back(vbox({
                 text("Mäng läbi! Sinu skoor: " + to_string(punktid)),
                 separator(),
                 text("Kas soovid salvestada oma tulemuse?"),
@@ -205,33 +207,29 @@ int main() {
                     text(" "),
                     salvestaEi->Render(),
                 })
-            });
+            }));
         }
-        
+
         if (küsiNime) {
-            return vbox({
+            vali.push_back( vbox({
                 text("Sisesta oma nimi:"),
                 nimiInput->Render(),
                 nimiKinnita->Render()
-            });
+            }));
         }
-        
+
         if (küsiUutMängu) {
-            return vbox({
+            vali.push_back( vbox({
                 text("Kas soovid alustada uut mängu?"),
                 hbox({
                     uusMängJah->Render(),
                     text(" "),
                     uusMängEi->Render(),
                 })
-            });
+            }));
         }
-        
-        string gameoverText = "";
-        if (gameover) {
-            gameoverText = "Mäng läbi!";
-        }
-        return vbox(make_grid2(ruudustik), text(gameoverText));
+
+        return vbox(vali);
     });
 
     //seaded
@@ -288,7 +286,7 @@ int main() {
         file.close();
 
         file.open(filename, ios::in);
-        
+
         if (file.is_open()) {
             string nimi;
             int skoor;
@@ -298,7 +296,7 @@ int main() {
             file.close();
 
             // Sorteeri tulemused paremusjärjestuses
-            sort(allScores.begin(), allScores.end(), 
+            sort(allScores.begin(), allScores.end(),
                 [](const pair<string, int>& a, const pair<string, int>& b) {
                     return a.second > b.second;
                 });
@@ -307,11 +305,11 @@ int main() {
                 skoorid.push_back(hbox(text(nimi) | flex, text(to_string(skoor)) | flex));
             }
         }
-        
+
         if (skoorid.size() <= 2) {
             skoorid.push_back(text("Edetabelis pole veel tulemusi!"));
         }
-        
+
         return vbox({
             hbox(text("Edetabel:")),
             separator(),
@@ -355,7 +353,7 @@ int main() {
     auto tab_container = Container::Tab(
         {
             mainMenu,
-            gridRenderer,
+            manguRenderer,
             seadedRenderer,
             edetabelRenderer,
             skoorRenderer,
@@ -428,6 +426,20 @@ int main() {
 
     //TODO parem välimus, kehtib ka eelmiste osade kohta
     auto main_renderer = Renderer(main_component, [&] {
+        auto tiitel = vbox();
+        if (gamestate == 0) {
+            tiitel = vbox({
+                text("  _______  ________  ___   ___  ________                 ________  ________  ________   "),
+                text(" /  ___  \\|\\   __  \\|\\  \\ |\\  \\|\\   __  \\               |\\   ____\\|\\   __  \\|\\   __  \\  "),
+                text("/__/|_/  /\\ \\  \\|\\  \\ \\  \\\\_\\  \\ \\  \\|\\  \\  ____________\\ \\  \\___|\\ \\  \\|\\  \\ \\  \\|\\  \\ "),
+                text("|__|//  / /\\ \\  \\\\\\  \\ \\______  \\ \\   __  \\|\\____________\\ \\  \\    \\ \\   ____\\ \\   ____\\"),
+                text("    /  /_/__\\ \\  \\\\\\  \\|_____|\\  \\ \\  \\|\\  \\|____________|\\ \\  \\____\\ \\  \\___|\\ \\  \\___|"),
+                text("   |\\________\\ \\_______\\     \\ \\__\\ \\_______\\              \\ \\_______\\ \\__\\    \\ \\__\\   "),
+                text("    \\|_______|\\|_______|      \\|__|\\|_______|               \\|_______|\\|__|     \\|__|   "),
+                text(""),
+                text(""),
+            });
+        }
         return vbox({
             text("debug info"),
             hbox(text("selected = "), text(std::to_string(selected))),
@@ -435,6 +447,7 @@ int main() {
             separator(),
             hbox(text("ESC viib tagasi peamenüüsse")),
             separator(),
+            tiitel,
             skoorRenderer->Render(),
             main_component->Render() | frame,
         }) |
