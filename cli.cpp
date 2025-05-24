@@ -46,7 +46,7 @@ void kuvaRuudustik(vector<vector<int>>& ruudustik) {
     }
 }
 
-void liigutaRuudustikku(vector<vector<int>>& ruudustik, int suund, bool* liigutas) {
+void liigutaRuudustikku(vector<vector<int>>& ruudustik, int suund, bool* liigutas, int* punktid) {
     //Liiguta üles
     if (suund == 0) {
         for (int i = 0; i < ruudustik.size(); ++i) {
@@ -65,6 +65,7 @@ void liigutaRuudustikku(vector<vector<int>>& ruudustik, int suund, bool* liiguta
                             if (ruudustik[uus][j] == ruudustik[vaadeldav][j]) {
                                 //on sama number, liidame
                                 ruudustik[uus][j] *= 2;
+                                *punktid += ruudustik[uus][j];
                                 ruudustik[vaadeldav][j] = 0;
                                 *liigutas = true;
                             }
@@ -94,6 +95,7 @@ void liigutaRuudustikku(vector<vector<int>>& ruudustik, int suund, bool* liiguta
                             if (ruudustik[uus][j] == ruudustik[vaadeldav][j]) {
                                 //on sama number, liidame
                                 ruudustik[uus][j] *= 2;
+                                *punktid += ruudustik[uus][j];
                                 ruudustik[vaadeldav][j] = 0;
                                 *liigutas = true;
                             }
@@ -123,6 +125,7 @@ void liigutaRuudustikku(vector<vector<int>>& ruudustik, int suund, bool* liiguta
                             if (ruudustik[i][uus] == ruudustik[i][vaadeldav]) {
                                 //on sama number, liidame
                                 ruudustik[i][uus] *= 2;
+                                *punktid += ruudustik[i][uus];
                                 ruudustik[i][vaadeldav] = 0;
                                 *liigutas = true;
                             }
@@ -152,6 +155,7 @@ void liigutaRuudustikku(vector<vector<int>>& ruudustik, int suund, bool* liiguta
                             if (ruudustik[i][uus] == ruudustik[i][vaadeldav]) {
                                 //on sama number, liidame
                                 ruudustik[i][uus] *= 2;
+                                *punktid += ruudustik[i][uus];
                                 ruudustik[i][vaadeldav] = 0;
                                 *liigutas = true;
                             }
@@ -216,19 +220,20 @@ void cliMang() {
             } else //if (key == 0 || key == 224) { // Nooled on 0 või 224
             {
                 bool liigutas = false;
+                int punktid = 0; // vajalik TUI mängu jaoks
                 key = _getch(); // Annab key väärtuse
                 switch (key) {
                     case 72: // Üles
-                        liigutaRuudustikku(ruudustik, 0, &liigutas);
+                        liigutaRuudustikku(ruudustik, 0, &liigutas, &punktid);
                         break;
                     case 80: // Alla
-                        liigutaRuudustikku(ruudustik, 1, &liigutas);
+                        liigutaRuudustikku(ruudustik, 1, &liigutas, &punktid);
                         break;
                     case 75: // Vasak
-                        liigutaRuudustikku(ruudustik, 2, &liigutas);
+                        liigutaRuudustikku(ruudustik, 2, &liigutas, &punktid);
                         break;
                     case 77: // Parem
-                        liigutaRuudustikku(ruudustik, 3, &liigutas);
+                        liigutaRuudustikku(ruudustik, 3, &liigutas, &punktid);
                         break;
                 }
                 if (liigutas) {
