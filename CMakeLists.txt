@@ -21,8 +21,8 @@ FetchContent_MakeAvailable(ftxui)
 # ------------------------------------------------------------------------------
 
 add_executable(2048-cpp main.cpp
-        cli.cpp
-        cli.h)
+        logic.cpp
+        logic.h)
 target_link_libraries(2048-cpp
         PRIVATE ftxui::screen
         PRIVATE ftxui::dom

@@ -1,5 +1,5 @@
 #include <iostream>
-#include "cli.h"
+#include "logic.h"
 #include <ftxui/screen/screen.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <fstream>
@@ -12,7 +12,7 @@ using namespace std;
 using namespace ftxui;
 
 //----
-//koodi viide: https://stackoverflow.com/questions/23369503/get-size-of-terminal-window-rows-columns
+//terminali suuruse koodi viide: https://stackoverflow.com/questions/23369503/get-size-of-terminal-window-rows-columns
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
