@@ -151,29 +151,6 @@ void salvestaSkoor(const string& nimi, int skoor, int lauasuurus) {
     }
 }
 
-Element kuvaSkoorid() {
-    ifstream file("skoorid.txt");
-    if (!file.is_open()) {
-        return text("Edetabelit ei saa kuvada!");
-    }
-    
-    std::vector<Element> skoorid;
-    skoorid.push_back(hbox(text("Nimi") | flex, text("Skoor") | flex));
-    skoorid.push_back(separator());
-    
-    string nimi;
-    int skoor;
-    while (file >> nimi >> skoor) {
-        skoorid.push_back(hbox(text(nimi) | flex, text(to_string(skoor)) | flex));
-    }
-    
-    if (skoorid.empty()) {
-        skoorid.push_back(text("Edetabelis pole veel tulemusi!"));
-    }
-    
-    return vbox(skoorid);
-}
-
 int main() {
     auto screen = ScreenInteractive::TerminalOutput();
 
