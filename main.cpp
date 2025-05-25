@@ -11,9 +11,36 @@
 using namespace std;
 using namespace ftxui;
 
-//https://github.com/ArthurSonzogni/FTXUI?tab=readme-ov-file
+//----
+//koodi viide: https://stackoverflow.com/questions/23369503/get-size-of-terminal-window-rows-columns
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
+#include <Windows.h>
+#elif defined(__linux__)
+#include <sys/ioctl.h>
+#endif // Windows/Linux
 
-Color getColor(int number) {
+void get_terminal_size(int& width, int& height) {
+#if defined(_WIN32)
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    width = (int)(csbi.srWindow.Right-csbi.srWindow.Left+1);
+    height = (int)(csbi.srWindow.Bottom-csbi.srWindow.Top+1);
+#elif defined(__linux__)
+    struct winsize w;
+    ioctl(fileno(stdout), TIOCGWINSZ, &w);
+    width = (int)(w.ws_col);
+    height = (int)(w.ws_row);
+#endif // Windows/Linux
+}
+//----
+
+//Kasutusel FTXUI teek
+//https://github.com/ArthurSonzogni/FTXUI
+
+//Abimeetodid TUI loomiseks
+Color getColor(int number, int varviskeem) {
     if (number == 0) {
         return Color::Black;
     }
@@ -27,19 +54,54 @@ Color getColor(int number) {
         index++;
     }
 
-    switch (index) {
-        case 1: return Color::Yellow;
-        case 2: return Color::Green;
-        case 3: return Color::CadetBlueBis;
-        case 4: return Color::Cyan;
-        case 5: return Color::Magenta;
-        case 6: return Color::RedLight;
-        case 7: return Color::GreenLight;
-        case 8: return Color::BlueLight;
-        case 9: return Color::CyanLight;
-        case 10: return Color::MagentaLight;
-        case 11: return Color::Aquamarine1;
-        default: return Color::Red;
+    if (varviskeem == 1) {
+        //värviskeem 2
+        switch (index) {
+            case 1: return Color::Cyan;
+            case 2: return Color::BlueLight;
+            case 3: return Color::Blue;
+            case 4: return Color::MagentaLight;
+            case 5: return Color::Magenta;
+            case 6: return Color::RedLight;
+            case 7: return Color::Red;
+            case 8: return Color::DarkRed;
+            case 9: return Color::OrangeRed1;
+            case 10: return Color::Orange1;
+            case 11: return Color::Yellow;
+            default: return Color::Gold1;
+        }
+    } else if (varviskeem == 2) {
+        //värviskeem 3
+        switch (index) {
+            case 1: return Color::Red;
+            case 2: return Color::RedLight;
+            case 3: return Color::OrangeRed1;
+            case 4: return Color::Orange1;
+            case 5: return Color::Yellow;
+            case 6: return Color::PaleGreen3;
+            case 7: return Color::CyanLight;
+            case 8: return Color::Turquoise2;
+            case 9: return Color::Cyan;
+            case 10: return Color::BlueLight;
+            case 11: return Color::Blue;
+            default: return Color::DeepPink1;
+        }
+    } else {
+        //tavaline värviskeem
+        switch (index) {
+            case 1: return Color::Yellow;
+            case 2: return Color::Green;
+            case 3: return Color::CadetBlueBis;
+            case 4: return Color::Cyan;
+            case 5: return Color::Magenta;
+            case 6: return Color::RedLight;
+            case 7: return Color::GreenLight;
+            case 8: return Color::BlueLight;
+            case 9: return Color::CyanLight;
+            case 10: return Color::MagentaLight;
+            case 11: return Color::OrangeRed1;
+            default: return Color::Red;
+        }
     }
 }
 
@@ -55,7 +117,7 @@ Element värviRuut(const std::string& content, const Color& bg_color) {
     }) | bgcolor(bg_color) | color(Color::White) | size(WIDTH, EQUAL, 7) | size(HEIGHT, EQUAL, 3) | border;
 }
 
-Element make_grid2(vector<vector<int>>& ruudustik) {
+Element joonistaRuudustik(vector<vector<int>>& ruudustik, int varviskeem) {
     std::vector<Elements> rows;
     for (int i = 0; i < ruudustik.size(); ++i) {
         std::vector<Element> cols;
@@ -67,7 +129,7 @@ Element make_grid2(vector<vector<int>>& ruudustik) {
                 ruut = to_string(ruudustik[i][j]);
             }
             // Värv väärtuse järgi
-            Color ruuduVärv = getColor(ruudustik[i][j]);
+            Color ruuduVärv = getColor(ruudustik[i][j], varviskeem);
             cols.push_back(värviRuut(ruut, ruuduVärv));
         }
         rows.push_back(cols);
@@ -77,10 +139,10 @@ Element make_grid2(vector<vector<int>>& ruudustik) {
     return grid;
 }
 
-void salvestaSkoor(const string& nimi, int skoor) {
+void salvestaSkoor(const string& nimi, int skoor, int lauasuurus) {
     ofstream file("skoorid.txt", std::ios::app);
     if (file.is_open()) {
-        file << nimi << " " << skoor << "\n";
+        file << nimi << " " << skoor << " " << lauasuurus << "\n";
         file.flush();
         file.close();
 
@@ -128,8 +190,16 @@ int main() {
     bool küsiUutMängu = false;
     bool küsiSalvestamist = false;
 
+    int varviskeem = 0;
+
+    //---------------
+    //Mänguväli
+    //---------------
     auto nimiInput = Input(&kasutajaNimi, "");
-    
+    nimiInput |= CatchEvent([&](Event event) {
+        return event.is_character() && kasutajaNimi.size() > 19;
+    });
+
     // Nupud mängu lõpetuseks
     auto salvestaJah = Button("Jah", [&] {
         küsiSalvestamist = false;
@@ -148,7 +218,7 @@ int main() {
         if (kasutajaNimi.empty()) {
             kasutajaNimi = "Mängija";
         }
-        salvestaSkoor(kasutajaNimi, punktid);
+        salvestaSkoor(kasutajaNimi, punktid, suurus);
         küsiNime = false;
         küsiUutMängu = true;
         screen.PostEvent(Event::Custom); // Refresh
@@ -193,14 +263,14 @@ int main() {
         screen.PostEvent(Event::Custom); // refresh
     };
 
-    //mänguväli
     auto manguRenderer = Renderer([&] {
-        vector<Element> vali = {make_grid2(ruudustik)};
+        vector<Element> vali = {joonistaRuudustik(ruudustik, varviskeem) | hcenter};
 
         if (küsiSalvestamist) {
             vali.push_back(vbox({
-                text("Mäng läbi! Sinu skoor: " + to_string(punktid)),
                 separator(),
+                text("Mäng läbi! Sinu skoor: " + to_string(punktid)),
+                filler(),
                 text("Kas soovid salvestada oma tulemuse?"),
                 hbox({
                     salvestaJah->Render(),
@@ -212,14 +282,16 @@ int main() {
 
         if (küsiNime) {
             vali.push_back( vbox({
+                separator(),
                 text("Sisesta oma nimi:"),
                 nimiInput->Render(),
-                nimiKinnita->Render()
+                nimiKinnita->Render() | size(WIDTH, EQUAL, 8)
             }));
         }
 
         if (küsiUutMängu) {
             vali.push_back( vbox({
+                separator(),
                 text("Kas soovid alustada uut mängu?"),
                 hbox({
                     uusMängJah->Render(),
@@ -232,8 +304,20 @@ int main() {
         return vbox(vali);
     });
 
-    //seaded
-    //TODO implemeteeri veel seadeid, nt värviskeemi muutmine
+    auto skoorRenderer = Renderer([&] {
+    if (gamestate == 1) {
+        return vbox({
+            hbox(text("Punktid: " + to_string(punktid))),
+            separator()
+        });
+    }
+
+    return vbox({});
+    });
+
+    //---------------
+    //Seaded
+    //---------------
     string suurusString = "4";
     auto suuruseMuutmine = Input(&suurusString, "");
     suuruseMuutmine |= CatchEvent([&](Event event) {
@@ -258,28 +342,48 @@ int main() {
             suurus = 4;
         }
     });
+    vector<string> varvid = {"Värviskeem 1", "värviskeem 2","värviskeem 3"};
+    auto varviValik = Radiobox(&varvid, &varviskeem);
+
+    auto tagasiNuppSeaded = Button("Tagasi", [&]{gamestate = 0;});
+
     auto seadedTab = Container::Vertical({
-        suuruseMuutmine,
-        seadedKinnita,
+        Container::Horizontal({suuruseMuutmine,
+        seadedKinnita}),
+        varviValik,
+        tagasiNuppSeaded,
     });
     auto seadedRenderer = Renderer(seadedTab, [&] {
+        string temp;
+        for (char c : suurusString) {
+            if (c != '\n') {
+                temp += c;
+            }
+        }
+        suurusString = temp;
         return vbox({
-            hbox(text("Mängulaua suurus: "), suuruseMuutmine->Render()),
-            text("muud valikud TODO"),
-            seadedKinnita->Render(),
+            text("Seaded:"),
             separator(),
-            text("debug asjad"),
-            text(suurusString),
-            text(to_string(suurus)),
+            hbox(hbox(text("Mängulaua suurus: "), suuruseMuutmine->Render() | size(WIDTH, EQUAL, 4) | size(HEIGHT, LESS_THAN, 3))
+                | vcenter | size(WIDTH, GREATER_THAN, 20),
+                seadedKinnita->Render(),
+                text(to_string(suurus) + "x" + to_string(suurus)) | vcenter | border),
+            hbox(text("Värviskeem: "), varviValik->Render()),
+            separator(),
+            tagasiNuppSeaded->Render() | size(WIDTH, EQUAL, 6)
         });
     });
 
-    auto edetabelRenderer = Renderer([&] {
+    //---------------
+    // Edetabel
+    //---------------
+    auto tagasiNuppEdetabel = Button("Tagasi", [&]{gamestate = 0;});
+    auto edetabelRenderer = Renderer(tagasiNuppEdetabel, [&] {
         std::vector<Element> skoorid;
-        skoorid.push_back(hbox(text("Nimi") | flex, text("Skoor") | flex));
+        skoorid.push_back(hbox(text("Nimi                      ") | flex, text("Skoor") | flex, text("Mängulaua suurus") | flex));
         skoorid.push_back(separator());
 
-        vector<pair<string, int>> allScores;
+        vector<tuple<string, int, int>> allScores;
 
         string filename = "skoorid.txt";
         ifstream file(filename);
@@ -290,19 +394,23 @@ int main() {
         if (file.is_open()) {
             string nimi;
             int skoor;
-            while (file >> nimi >> skoor) {
-                allScores.push_back({nimi, skoor});
+            int lauasuurus;
+            while (file >> nimi >> skoor >> lauasuurus) {
+                allScores.push_back({nimi, skoor, lauasuurus});
             }
             file.close();
 
             // Sorteeri tulemused paremusjärjestuses
             sort(allScores.begin(), allScores.end(),
-                [](const pair<string, int>& a, const pair<string, int>& b) {
-                    return a.second > b.second;
+                [](const tuple<string, int, int>& a, const tuple<string, int, int>& b) {
+                    return get<1>(a) > get<1>(b);
                 });
 
-            for (const auto& [nimi, skoor] : allScores) {
-                skoorid.push_back(hbox(text(nimi) | flex, text(to_string(skoor)) | flex));
+            for (auto& [nimi, skoor, lauasuurus] : allScores) {
+                while (nimi.length() <= 20) {
+                    nimi += " ";
+                }
+                skoorid.push_back(hbox(text(nimi) | flex, text(to_string(skoor)) | flex, text(to_string(lauasuurus) + "x" + to_string(lauasuurus)) | flex));
             }
         }
 
@@ -313,22 +421,15 @@ int main() {
         return vbox({
             hbox(text("Edetabel:")),
             separator(),
-            vbox(skoorid)
+            vbox(skoorid),
+            separator(),
+            tagasiNuppEdetabel->Render() | size(WIDTH, EQUAL, 6),
         });
     });
 
-    auto skoorRenderer = Renderer([&] {
-        if (gamestate == 1) {
-            return vbox({
-                hbox(text("Punktid: " + to_string(punktid))),
-                separator()
-            });
-        }
-
-        return vbox({});
-    });
-
-    //peamenüü
+    //---------------
+    //Peamenüü
+    //---------------
     vector<string> valikud = {"Mängi", "Seaded", "Edetabel", "Sulge"};
     int selected = 0;
     MenuOption option = MenuOption::Vertical();
@@ -346,7 +447,17 @@ int main() {
         }
         gamestate = selected+1;
     };
-    auto mainMenu = Menu(&valikud, &selected, option);
+    option.entries_option.animated_colors.foreground.enabled = true;
+    option.entries_option.animated_colors.background.enabled = true;
+    option.entries_option.animated_colors.background.active = Color::DarkGreen;
+    option.entries_option.animated_colors.background.inactive = Color::Default;
+    option.entries_option.animated_colors.foreground.active = Color::White;
+    option.entries_option.animated_colors.foreground.inactive = Color::GrayDark;
+    auto mainMenu = Menu(&valikud, &selected, option)  | size(WIDTH, EQUAL, 12) | center;
+
+    auto mainMenuRenderer = Renderer([&] {
+        return vbox();
+    });
 
     //kõikide osade konteiner
     //lisa siia uusi osasid
@@ -361,7 +472,9 @@ int main() {
         &gamestate
     );
 
-    //põhi komponent
+    //---------------
+    //Põhikompoment ja renderdamine
+    //---------------
     auto main_component = Container::Vertical({tab_container});
     
     main_component |= CatchEvent([&](Event event) {
@@ -424,39 +537,53 @@ int main() {
         return handled;
     });
 
-    //TODO parem välimus, kehtib ka eelmiste osade kohta
     auto main_renderer = Renderer(main_component, [&] {
         auto tiitel = vbox();
         if (gamestate == 0) {
             tiitel = vbox({
-                text("  _______  ________  ___   ___  ________                 ________  ________  ________   "),
-                text(" /  ___  \\|\\   __  \\|\\  \\ |\\  \\|\\   __  \\               |\\   ____\\|\\   __  \\|\\   __  \\  "),
-                text("/__/|_/  /\\ \\  \\|\\  \\ \\  \\\\_\\  \\ \\  \\|\\  \\  ____________\\ \\  \\___|\\ \\  \\|\\  \\ \\  \\|\\  \\ "),
-                text("|__|//  / /\\ \\  \\\\\\  \\ \\______  \\ \\   __  \\|\\____________\\ \\  \\    \\ \\   ____\\ \\   ____\\"),
-                text("    /  /_/__\\ \\  \\\\\\  \\|_____|\\  \\ \\  \\|\\  \\|____________|\\ \\  \\____\\ \\  \\___|\\ \\  \\___|"),
-                text("   |\\________\\ \\_______\\     \\ \\__\\ \\_______\\              \\ \\_______\\ \\__\\    \\ \\__\\   "),
-                text("    \\|_______|\\|_______|      \\|__|\\|_______|               \\|_______|\\|__|     \\|__|   "),
+                text("  _______  ________  ___   ___  ________                 ________  ________  ________   ") | color(Color::Green),
+                text(" /  ___  \\|\\   __  \\|\\  \\ |\\  \\|\\   __  \\               |\\   ____\\|\\   __  \\|\\   __  \\  ") | color(Color::Yellow),
+                text("/__/|_/  /\\ \\  \\|\\  \\ \\  \\\\_\\  \\ \\  \\|\\  \\  ____________\\ \\  \\___|\\ \\  \\|\\  \\ \\  \\|\\  \\ ") | color(Color::PaleGreen3),
+                text("|__|//  / /\\ \\  \\\\\\  \\ \\______  \\ \\   __  \\|\\____________\\ \\  \\    \\ \\   ____\\ \\   ____\\") | color(Color::Aquamarine3),
+                text("    /  /_/__\\ \\  \\\\\\  \\|_____|\\  \\ \\  \\|\\  \\|____________|\\ \\  \\____\\ \\  \\___|\\ \\  \\___|") | color(Color::Cyan),
+                text("   |\\________\\ \\_______\\     \\ \\__\\ \\_______\\              \\ \\_______\\ \\__\\    \\ \\__\\   ") | color(Color::BlueLight),
+                text("    \\|_______|\\|_______|      \\|__|\\|_______|               \\|_______|\\|__|     \\|__|   ") | color(Color::Blue),
                 text(""),
                 text(""),
             });
         }
         return vbox({
-            text("debug info"),
-            hbox(text("selected = "), text(std::to_string(selected))),
-            hbox(text("gamestate = "), text(std::to_string(gamestate))),
-            separator(),
-            hbox(text("ESC viib tagasi peamenüüsse")),
-            separator(),
-            tiitel,
+            tiitel | center,
             skoorRenderer->Render(),
             main_component->Render() | frame,
-        }) |
-            border;
+        })  | border;
     });
+    //---------------
 
-    cout << "\e[8;40;100t"; //Muudab algse terminali suurust
+    srand(static_cast<unsigned int>(time(0)));
+
+    system("cls");
+
+    //Terminali suuruse muutmine, et algses olekus mängu ära mahutada
+    int korgus, laius;
+    get_terminal_size(laius, korgus);
+    int algnekorgus = korgus;
+    int algnelaius = laius;
+    if (korgus < 35) {
+        korgus = 35;
+    }
+    if (laius < 90) {
+        laius = 90;
+    }
+    string sizeCtrl = "\e[8;" + to_string(korgus) + ";" + to_string(laius) + "t";
+    cout << sizeCtrl;
 
     screen.Loop(main_renderer);
+
+    //taastame algse terminali suuruse peale mängu sulgemist
+    system("cls");
+    sizeCtrl = "\e[8;" + to_string(algnekorgus) + ";" + to_string(algnelaius) + "t";
+    cout << sizeCtrl;
 
     return 0;
 }

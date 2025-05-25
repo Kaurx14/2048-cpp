@@ -19,6 +19,20 @@ void looRuudustik(vector<vector<int>>& ruudustik, int suurus) {
         ruudustik.push_back(rida);
     }
 
+    //testkood
+    if (false) {
+        int test = 2;
+        for (int i = 0; i < suurus; i++) {
+            for (int j = 0; j < suurus; j++) {
+                ruudustik[i][j] = test;
+                test *= 2;
+                if (test > 2048) {
+                    return;
+                }
+            }
+        }
+    }
+
     // Initsialiseeri 2 juhuslikku ruutu väärtusega "2"
     int rida = rand() % ruudustik.size();
     int veerg = rand() % ruudustik.size();
@@ -202,6 +216,7 @@ bool kasLabi(vector<vector<int>>& ruudustik) {
     return true;
 }
 
+/*
 void cliMang() {
     srand(static_cast<unsigned int>(time(0)));
 
@@ -256,3 +271,4 @@ void cliMang() {
         }
     }
 }
+*/

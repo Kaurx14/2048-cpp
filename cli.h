@@ -14,6 +14,6 @@ void lisaNumber(std::vector<std::vector<int>>& ruudustik);
 
 bool kasLabi(std::vector<std::vector<int>>& ruudustik);
 
-void cliMang();
+//void cliMang();
 
 #endif //CLI_H
