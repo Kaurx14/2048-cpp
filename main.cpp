@@ -151,29 +151,6 @@ void salvestaSkoor(const string& nimi, int skoor, int lauasuurus) {
     }
 }
 
-Element kuvaSkoorid() {
-    ifstream file("skoorid.txt");
-    if (!file.is_open()) {
-        return text("Edetabelit ei saa kuvada!");
-    }
-    
-    std::vector<Element> skoorid;
-    skoorid.push_back(hbox(text("Nimi") | flex, text("Skoor") | flex));
-    skoorid.push_back(separator());
-    
-    string nimi;
-    int skoor;
-    while (file >> nimi >> skoor) {
-        skoorid.push_back(hbox(text(nimi) | flex, text(to_string(skoor)) | flex));
-    }
-    
-    if (skoorid.empty()) {
-        skoorid.push_back(text("Edetabelis pole veel tulemusi!"));
-    }
-    
-    return vbox(skoorid);
-}
-
 int main() {
     auto screen = ScreenInteractive::TerminalOutput();
 
@@ -195,7 +172,17 @@ int main() {
     //---------------
     //Mänguväli
     //---------------
-    auto nimiInput = Input(&kasutajaNimi, "");
+    InputOption nimiInputOption;
+    nimiInputOption.on_enter = [&] {
+        if (kasutajaNimi.empty()) {
+            kasutajaNimi = "Mängija";
+        }
+        salvestaSkoor(kasutajaNimi, punktid, suurus);
+        küsiNime = false;
+        küsiUutMängu = true;
+        screen.PostEvent(Event::Custom); // Force refresh
+    };
+    auto nimiInput = Input(&kasutajaNimi, "", nimiInputOption);
     nimiInput |= CatchEvent([&](Event event) {
         return event.is_character() && kasutajaNimi.size() > 19;
     });
@@ -248,7 +235,6 @@ int main() {
 
     auto nimiSisestus = Container::Vertical({
         nimiInput,
-        nimiKinnita
     });
 
     auto uusMängValik = Container::Horizontal({
@@ -285,7 +271,6 @@ int main() {
                 separator(),
                 text("Sisesta oma nimi:"),
                 nimiInput->Render(),
-                nimiKinnita->Render() | size(WIDTH, EQUAL, 8)
             }));
         }
 
@@ -319,14 +304,8 @@ int main() {
     //Seaded
     //---------------
     string suurusString = "4";
-    auto suuruseMuutmine = Input(&suurusString, "");
-    suuruseMuutmine |= CatchEvent([&](Event event) {
-        return event.is_character() && !std::isdigit(event.character()[0]);
-    });
-    suuruseMuutmine |= CatchEvent([&](Event event) {
-        return event.is_character() && suurusString.size() > 0;
-    });
-    auto seadedKinnita = Button("Kinnita", [&] {
+    InputOption suurusInputOption;
+    suurusInputOption.on_enter = [&] {
         try {
             int uusSuurus = stoi(suurusString);
             if (uusSuurus < 2) {
@@ -341,32 +320,51 @@ int main() {
             suurusString = "4";
             suurus = 4;
         }
+    };
+    suurusInputOption.on_change = [&] {
+        try {
+            int uusSuurus = stoi(suurusString);
+            if (uusSuurus < 2) {
+                uusSuurus = 2;
+            }
+            if (uusSuurus > 9) {
+                uusSuurus = 9;
+            }
+            suurusString = to_string(uusSuurus);
+            suurus = uusSuurus;
+        } catch (invalid_argument& e) {
+
+        }
+    };
+    auto suuruseMuutmine = Input(&suurusString, "", suurusInputOption);
+    suuruseMuutmine |= CatchEvent([&](Event event) {
+        return event.is_character() && !std::isdigit(event.character()[0]);
     });
+    suuruseMuutmine |= CatchEvent([&](Event event) {
+        return event.is_character() && suurusString.size() > 0;
+    });
+
     vector<string> varvid = {"Värviskeem 1", "värviskeem 2","värviskeem 3"};
     auto varviValik = Radiobox(&varvid, &varviskeem);
 
-    auto tagasiNuppSeaded = Button("Tagasi", [&]{gamestate = 0;});
+    auto tagasiNuppSeaded = Button("Tagasi", [&] {
+        gamestate = 0;
+        if (suurusString.empty()) {
+            suurusString = to_string(suurus);
+        }
+    });
 
     auto seadedTab = Container::Vertical({
-        Container::Horizontal({suuruseMuutmine,
-        seadedKinnita}),
+        suuruseMuutmine,
         varviValik,
         tagasiNuppSeaded,
     });
     auto seadedRenderer = Renderer(seadedTab, [&] {
-        string temp;
-        for (char c : suurusString) {
-            if (c != '\n') {
-                temp += c;
-            }
-        }
-        suurusString = temp;
         return vbox({
             text("Seaded:"),
             separator(),
-            hbox(hbox(text("Mängulaua suurus: "), suuruseMuutmine->Render() | size(WIDTH, EQUAL, 4) | size(HEIGHT, LESS_THAN, 3))
-                | vcenter | size(WIDTH, GREATER_THAN, 20),
-                seadedKinnita->Render(),
+            hbox(hbox(text("Mängulaua suurus: "), suuruseMuutmine->Render() | size(WIDTH, EQUAL, 3) | size(HEIGHT, LESS_THAN, 3))
+                | vcenter | size(WIDTH, GREATER_THAN, 23),
                 text(to_string(suurus) + "x" + to_string(suurus)) | vcenter | border),
             hbox(text("Värviskeem: "), varviValik->Render()),
             separator(),
@@ -407,7 +405,7 @@ int main() {
                 });
 
             for (auto& [nimi, skoor, lauasuurus] : allScores) {
-                while (nimi.length() <= 20) {
+                while (nimi.size() <= 20) {
                     nimi += " ";
                 }
                 skoorid.push_back(hbox(text(nimi) | flex, text(to_string(skoor)) | flex, text(to_string(lauasuurus) + "x" + to_string(lauasuurus)) | flex));
